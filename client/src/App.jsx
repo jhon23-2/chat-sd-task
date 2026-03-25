@@ -2,9 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
-
-const socket = io(SOCKET_URL);
+const socket = io();
 
 export default function App() {
   const [username, setUsername] = useState("");
