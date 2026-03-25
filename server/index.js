@@ -2,33 +2,33 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
+
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",   // In production, replace * with your Netlify URL
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-// Track connected users
 const users = {};
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  // User joins with a username
   socket.on("join", (username) => {
     users[socket.id] = username;
     io.emit("system", `${username} joined the chat`);
     io.emit("users", Object.values(users));
   });
 
-  // User sends a message
   socket.on("message", (data) => {
     io.emit("message", {
       username: users[socket.id],
@@ -37,7 +37,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // User disconnects
   socket.on("disconnect", () => {
     const username = users[socket.id];
     delete users[socket.id];
@@ -48,7 +47,9 @@ io.on("connection", (socket) => {
   });
 });
 
-app.get("/", (req, res) => res.send("Chat server running ✅"));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
